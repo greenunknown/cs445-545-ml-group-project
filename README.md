@@ -1,1 +1,1 @@
-PSU CS 454/545 Machine Learning Group Project
+PSU CS 445/545 Machine Learning Group Project
