@@ -58,7 +58,7 @@ dictionary = corpora.Dictionary(token)
 dictionary.filter_extremes(no_below = 1, no_above = 0.8)         # filter keywords
 
 # dictionary to corpus
-corpus = [dictionary.doc2bow(tokens) for tokens in tokenized]
+corpus = [dictionary.doc2bow(tokens) for tokens in token]
 
 # (4) BUILD THE TOPIC MODEL
 ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
