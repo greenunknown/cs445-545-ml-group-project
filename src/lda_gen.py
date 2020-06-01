@@ -27,7 +27,7 @@ print(new_data.head(5))
 # (2) PREPROCESS TEXT
 def clean(text):
   # remove punctuation 
-  text = re.sub("[^a-zA-Z ]", "", text)
+  text = re.sub("[^a-zA-Z ]", "", str(text))
   
   # lowercase everything
   text = text.lower()
