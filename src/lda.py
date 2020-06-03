@@ -118,6 +118,8 @@ pprint(top_topics)
 import pyLDAvis
 
 lda_vis_data = pyLDAvis.gensim.prepare(ldamodel, corpus, dictionary)
+pyLDAvis.save_html(lda_vis_data, "lda-vis-data.html")
 pyLDAvis.show(lda_vis_data)
+
 # (5) ANALYZE THE DATA
 # planning to use pyLDAvis to visualize the data; wip
