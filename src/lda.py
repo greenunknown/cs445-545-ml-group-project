@@ -16,6 +16,8 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from gensim import corpora, models, similarities 
 
+nltk.download('all')
+
 # (1) IMPORT DATASET
 data = pd.read_csv('metadata.csv', low_memory = False)
 keep_columns = ['abstract', 'publish_time']
