@@ -16,7 +16,15 @@ from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from gensim import corpora, models, similarities 
 
+import time
+start = time.time()
+
 nltk.download('all')
+
+#nltk.download('punkt')
+
+
+
 
 # (1) IMPORT DATASET
 data = pd.read_csv('metadata.csv', low_memory = False)
@@ -95,7 +103,8 @@ print(corpus[:1])
 # (4) BUILD THE TOPIC MODEL
 # output shows the Topic-Words matrix for 5 of the topic that were created and 5 words within
 # each topic that describes them
-ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
+# ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
+ldamodel = gensim.models.ldamulticore.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
 ldamodel.save('model.gensim')
 topics = ldamodel.print_topics(num_words = 5)
 for topic in topics: 
@@ -121,6 +130,10 @@ import pyLDAvis
 
 lda_vis_data = pyLDAvis.gensim.prepare(ldamodel, corpus, dictionary)
 pyLDAvis.save_html(lda_vis_data, "lda-vis-data.html")
+
+end = time.time()
+print(f"Runtime: {end - start}")
+
 pyLDAvis.show(lda_vis_data)
 
 # (5) ANALYZE THE DATA
