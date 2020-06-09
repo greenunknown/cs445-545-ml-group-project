@@ -44,16 +44,16 @@ print(new_data.head(5))
 
 # (2) PREPROCESS TEXT
 def clean(text):
-  # remove punctuation 
+  # remove punctuation
   text = re.sub("[^a-zA-Z ]", "", str(text))
-  
+
   # lowercase everything
   text = text.lower()
-  
+
   # tokenize the text
   text = nltk.word_tokenize(text)
   return text
-  
+
 # as seen in the first few runs of lda, these words contributed to the noise
 # when it came to topic modeling. To remove the noise, we'll remove these words
 # and get the relevant topics
@@ -103,8 +103,8 @@ print(corpus[:1])
 # (4) BUILD THE TOPIC MODEL
 # output shows the Topic-Words matrix for 5 of the topic that were created and 5 words within
 # each topic that describes them
-# ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
-ldamodel = gensim.models.ldamulticore.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
+ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
+# ldamodel = gensim.models.ldamulticore.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
 ldamodel.save('model.gensim')
 topics = ldamodel.print_topics(num_words = 5)
 for topic in topics: 
