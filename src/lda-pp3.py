@@ -12,8 +12,6 @@ from gensim.corpora.dictionary import Dictionary
 from nltk.stem.wordnet import WordNetLemmatizer
 from nltk.tokenize import RegexpTokenizer
 import matplotlib.pyplot as plt
-import warnings
-warnings.filterwarnings('ignore', category=DeprecationWarning)  # To ignore all warnings that arise here to enhance clarity
 
 
 def docs_preprocessor(documents):
@@ -77,7 +75,7 @@ if __name__ == "__main__":
     keep_columns = ['abstract', 'publish_time']
     new_data = data[keep_columns]
     new_data = new_data.dropna(axis='index')
-    new_data.to_csv("newdata-pp3.csv", index=False)  # Write out csv with only abstract column
+    new_data.to_csv("newdata-pp3.csv", index=False)  # Write out csv with only abstract and publish_time columns
     docs = np.array(new_data['abstract'])  # Convert to array
 
     # Perform function on our document
@@ -115,33 +113,17 @@ if __name__ == "__main__":
     print("Stage 2: Train the model.")
     # Set parameters.
     num_topics = 5
-    # chunksize = 500
     passes = 10  # 20
-    # iterations = 100  # 400
-    # eval_every = 1
 
     # Make a index to word dictionary.
     temp = dictionary[0]  # only to "load" the dictionary.
     id2word = dictionary.id2token
     lda_model = LdaModel(corpus=corpus, num_topics=num_topics, id2word=id2word, passes=passes)
-    # lda_model = LdaModel(corpus=corpus, id2word=id2word, chunksize=chunksize,
-    #                      alpha='auto', eta='auto',
-    #                      iterations=iterations, num_topics=num_topics,
-    #                      passes=passes, eval_every=eval_every)
     # Print the Keyword in the 5 topics
     print(lda_model.print_topics())
 
     # Calculate Coherence and saving pyLDAvis
-    print("Stage 3: Calculating coherence and saving pyLDAvis")
-    # Compute Coherence Score using c_v
-    # coherence_model_lda_c_v = CoherenceModel(model=lda_model, texts=docs, dictionary=dictionary, coherence='c_v')
-    # coherence_lda_c_v = coherence_model_lda_c_v.get_coherence()
-    # print('\nCoherence Score c_v: ', coherence_lda_c_v)
-    #
-    # # Compute Coherence Score using UMass
-    # coherence_model_lda_u_mass = CoherenceModel(model=lda_model, texts=docs, dictionary=dictionary, coherence="u_mass")
-    # coherence_lda_u_mass = coherence_model_lda_u_mass.get_coherence()
-    # print('\nCoherence Score u_mass: ', coherence_lda_u_mass)
+    print("Stage 3: Saving pyLDAvis")
 
     lda_vis_data = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary)
     pyLDAvis.save_html(lda_vis_data, "ldavis-pp3.html")

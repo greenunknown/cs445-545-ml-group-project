@@ -1,125 +1,110 @@
-# implementing LDA with gensim
-# 1. import dataset
-# 2. preprocess text
-# 3. create gensim dictionary and corpus
-# 4. build the topic model
-# 5. analyze
+# Code referenced from:
+# https://radimrehurek.com/gensim/auto_examples/tutorials/run_lda.html#sphx-glr-auto-examples-tutorials-run-lda-py
+# https://datascienceplus.com/evaluation-of-topic-modeling-topic-coherence/
 
 import numpy as np
-import pandas as pd
-import re
-import gensim
 import pyLDAvis.gensim
-import nltk
-from nltk.corpus import stopwords
-from nltk.stem.porter import PorterStemmer
-from nltk.tokenize import RegexpTokenizer
-from gensim import corpora, models, similarities
-
-from nltk.stem.wordnet import WordNetLemmatizer
+import pandas as pd
+import warnings
+warnings.filterwarnings('ignore')
+from gensim.models.coherencemodel import CoherenceModel
+from gensim.models.ldamodel import LdaModel
 from gensim.models import Phrases
-from pprint import pprint
-import pyLDAvis
+from gensim.corpora.dictionary import Dictionary
+from nltk.stem.wordnet import WordNetLemmatizer
+from nltk.tokenize import RegexpTokenizer
 
-import time
 
-
-# Functions
-
-def clean(text):
-    # Split the documents into tokens.
+def docs_preprocessor(documents):
+    """
+    Tokenize and lemmatizing documents
+    :param documents:
+    :return:
+    """
     tokenizer = RegexpTokenizer(r'\w+')
+    for i in range(len(documents)):
+        documents[i] = documents[i].lower()  # Convert to lowercase.
+        documents[i] = tokenizer.tokenize(documents[i])  # Split into words.
 
-    # remove punctuation
-    text = re.sub("[^a-zA-Z ]", "", str(text))
+    # Remove numbers, but not words that contain numbers.
+    documents = [[tkn for tkn in doc if not tkn.isdigit()] for doc in documents]
 
-    text = text.lower()  # Convert to lowercase.
-    text = tokenizer.tokenize(text)  # Split into words.
-    # # Remove numbers, but not words that contain numbers.
-    # text = [[token for token in doc if not token.isnumeric()] for doc in text]
-    #
-    # # Remove words that are only one character.
-    # text = [[token for token in doc if len(token) > 1] for doc in text]
+    # Remove words that are only one character.
+    documents = [[tkn for tkn in doc if len(tkn) > 3] for doc in documents]
 
-    # lemmatizer = WordNetLemmatizer()
-    # text = [[lemmatizer.lemmatize(token) for token in doc] for doc in text]
-
-    # text = nltk.word_tokenize(text)
-    return text
+    # Lemmatize all words in documents.
+    lemmatizer = WordNetLemmatizer()
+    documents = [[lemmatizer.lemmatize(tkn) for tkn in doc] for doc in documents]
+    return documents
 
 
-def remove_words(text):
-    common_words = stopwords.words('english')
-    common_words.extend(['of', 'and', 'the', 'in', 'were', 'to', 'nan', 'with'])
-    return [word for word in text if word not in common_words]
+if __name__ == "__main__":
+    # Setup
+    print("Stage 1: Setup")
 
+    # Import dataset
+    data = pd.read_csv("metadata.csv", low_memory=False)
+    keep_columns = ['abstract']
+    new_data = data[keep_columns]
+    new_data = new_data.dropna(axis='index')
+    new_data.to_csv("newdata-pp2.csv", index=False)  # Write out csv with only abstract columns
+    docs = np.array(new_data['abstract'])  # Convert to array
 
-def preprocess(text):
-    return remove_words(clean(text))
+    # Perform function on our document
+    print("Performing preprocessing.")
+    docs = docs_preprocessor(docs)
 
+    # Create Biagram & Trigram Models
+    # Add bigrams and trigrams to docs,minimum count 10 means only that appear 10 times or more.
+    bigram = Phrases(docs, min_count=10)
+    trigram = Phrases(bigram[docs])
 
-def print_top_topics(corpus, len_topics, ldamodel):
-    top_topics = ldamodel.top_topics(corpus)
-    # average topic coherence is the sum of topic coherences of all topics, divided by the number of topics
-    avg_topic_coherence = sum([t[1] for t in top_topics]) / len(topics)
-    print('Average topic coherence: %.4f.' % avg_topic_coherence)
-    pprint(top_topics)
+    for idx in range(len(docs)):
+        for token in bigram[docs[idx]]:
+            if '_' in token:
+                # Token is a bigram, add to document.
+                docs[idx].append(token)
+        for token in trigram[docs[idx]]:
+            if '_' in token:
+                # Token is a bigram, add to document.
+                docs[idx].append(token)
 
+    # Remove rare & common tokens
+    # Create a dictionary representation of the documents.
+    dictionary = Dictionary(docs)
+    dictionary.filter_extremes(no_below=10, no_above=0.2)
+    # Create dictionary and corpus required for Topic Modeling
+    corpus = [dictionary.doc2bow(doc) for doc in docs]
+    print('Number of unique tokens: %d' % len(dictionary))
+    print('Number of documents: %d' % len(corpus))
+    print(corpus[:1])
 
+    # Train the model
+    print("Stage 2: Train the model.")
+    # Set parameters.
+    num_topics = 5
+    chunksize = 500
+    passes = 10  # 20
+    iterations = 100  # 400
 
-start = time.time()
+    # Make a index to word dictionary.
+    temp = dictionary[0]  # only to "load" the dictionary.
+    id2word = dictionary.id2token
+    lda_model = LdaModel(corpus=corpus, num_topics=num_topics, id2word=id2word, passes=passes, chunksize=chunksize,
+                         alpha='auto', eta='auto')
 
-nltk.download('all')
+    # Calculate Coherence and saving pyLDAvis
+    print("Stage 3: Calculating coherence and saving pyLDAvis")
 
-# nltk.download('punkt')
+    # Compute Coherence Score using c_v
+    coherence_model_lda_c_v = CoherenceModel(model=lda_model, texts=docs, dictionary=dictionary, coherence='c_v')
+    coherence_lda_c_v = coherence_model_lda_c_v.get_coherence()
+    print('\nCoherence Score c_v: ', coherence_lda_c_v)
 
+    # Compute Coherence Score using UMass
+    coherence_model_lda_u_mass = CoherenceModel(model=lda_model, texts=docs, dictionary=dictionary, coherence="u_mass")
+    coherence_lda_u_mass = coherence_model_lda_u_mass.get_coherence()
+    print('\nCoherence Score u_mass: ', coherence_lda_u_mass)
 
-# (1) IMPORT DATASET
-data = pd.read_csv('metadata.csv', low_memory=False)
-keep_columns = ['abstract', 'publish_time']
-
-# new_data contains the data in metadata.csv, but it only keeps the abstract and publish time
-new_data = data[keep_columns]
-
-# new_data is stored in a new csv file, this is the file that we'll be working with
-new_data.to_csv("newdata.csv", index=False)
-file = 'newdata.csv'
-
-# (2) PREPROCESS TEXT
-# token the data to be used with gensim, just looking at the abstracts
-new_data['tokenized_data'] = new_data['abstract'].apply(preprocess)
-
-# (3) CREATE GENSIM LIBRARY AND CORPUS
-token = new_data['tokenized_data']  # gensim dictionary from tokenized data
-
-
-dictionary = corpora.Dictionary(token)  # dictionary used in corpus
-
-# Filter out words that occur in less than 5 documents or more than 50% of the documents
-# dictionary.filter_extremes(no_below=1, no_above=0.8)         # filter keywords
-dictionary.filter_extremes(no_below=5, no_above=0.5)
-
-# dictionary to corpus
-corpus = [dictionary.doc2bow(tokens) for tokens in token]
-
-print('Number of unique tokens: %d' % len(dictionary))
-print('Number of documents: %d' % len(corpus))
-
-# (4) BUILD THE TOPIC MODEL
-# output shows the Topic-Words matrix for 5 of the topic that were created and 5 words within
-# each topic that describes them
-# ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
-ldamodel = gensim.models.ldamulticore.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
-ldamodel.save('model.gensim')
-topics = ldamodel.print_topics(num_words=5)
-for topic in topics:
-    print(topic)
-
-# (5) ANALYZE THE DATA
-print_top_topics(corpus, len(topics), ldamodel)
-lda_vis_data = pyLDAvis.gensim.prepare(ldamodel, corpus, dictionary)
-pyLDAvis.save_html(lda_vis_data, "lda-vis-data.html")
-end = time.time()
-print(f"Runtime: {end - start}")
-
-# pyLDAvis.show(lda_vis_data)
+    lda_vis_data = pyLDAvis.gensim.prepare(lda_model, corpus, dictionary)
+    pyLDAvis.save_html(lda_vis_data, "ldavis-pp2.html")
