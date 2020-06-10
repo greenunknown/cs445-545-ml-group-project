@@ -1,3 +1,7 @@
+# Code Referenced From: 
+# http://www.cs.cornell.edu/~xanda/winlp2017.pdf
+# https://towardsdatascience.com/topic-modeling-and-latent-dirichlet-allocation-in-python-9bf156893c24
+
 # implementing LDA with gensim
 # 1. import dataset
 # 2. preprocess text
@@ -20,11 +24,6 @@ import time
 start = time.time()
 
 nltk.download('all')
-
-#nltk.download('punkt')
-
-
-
 
 # (1) IMPORT DATASET
 data = pd.read_csv('metadata.csv', low_memory = False)
@@ -126,15 +125,16 @@ print('Average topic coherence: %.4f.' % avg_topic_coherence)
 from pprint import pprint
 pprint(top_topics)
 
+# (5) ANALYZE THE DATA
 import pyLDAvis
 
+# output the visuals to lda-vis-data.html, an interactive html file
 lda_vis_data = pyLDAvis.gensim.prepare(ldamodel, corpus, dictionary)
 pyLDAvis.save_html(lda_vis_data, "lda-vis-data.html")
 
+# determin when the algorithm stopped
 end = time.time()
 print(f"Runtime: {end - start}")
 
+# show the results
 pyLDAvis.show(lda_vis_data)
-
-# (5) ANALYZE THE DATA
-# planning to use pyLDAvis to visualize the data; wip
