@@ -22,8 +22,6 @@ def docs_preprocessor(documents):
     """
     tokenizer = RegexpTokenizer(r'\w+')
     for i in range(len(documents)):
-        if i % 1000 == 0:
-            print(f"document[{i}]")
         documents[i] = documents[i].lower()  # Convert to lowercase.
         documents[i] = tokenizer.tokenize(documents[i])  # Split into words.
 
@@ -88,8 +86,6 @@ if __name__ == "__main__":
     trigram = Phrases(bigram[docs])
 
     for idx in range(len(docs)):
-        if idx % 1000 == 0:
-            print(f"idx == {idx}")
         for token in bigram[docs[idx]]:
             if '_' in token:
                 # Token is a bigram, add to document.
