@@ -10,3 +10,5 @@ The COVID-19 pandemic is a major world event, having an extensive impact on the 
 
 This repository is structured to separate our **research, code, and dataset**. The `papers/` directory contains the project proposal and research paper associated with this project. The `code/` directory contains all of the python scripts used for downloading and preparing the dataset, running the topic modeling algorithms, and visualizing the results. The `data/` directory is the location in which the dataset will be stored, separated by city and date. This repository only shows examples of the structure of the data and will not include the complete datasets.
 <br /><br />
+
+The data for this project can be downloaded from [here](https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge?select=metadata.csv). The file of interest is `metadata.csv` which should be placed into the `data` folder of this project. 
