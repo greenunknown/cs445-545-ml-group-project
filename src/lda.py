@@ -1,3 +1,7 @@
+# Code Referenced From: 
+# http://www.cs.cornell.edu/~xanda/winlp2017.pdf
+# https://towardsdatascience.com/topic-modeling-and-latent-dirichlet-allocation-in-python-9bf156893c24
+
 # implementing LDA with gensim
 # 1. import dataset
 # 2. preprocess text
@@ -15,6 +19,11 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.stem.porter import PorterStemmer
 from gensim import corpora, models, similarities 
+
+import time
+start = time.time()
+
+nltk.download('all')
 
 # (1) IMPORT DATASET
 data = pd.read_csv('metadata.csv', low_memory = False)
@@ -34,16 +43,16 @@ print(new_data.head(5))
 
 # (2) PREPROCESS TEXT
 def clean(text):
-  # remove punctuation 
+  # remove punctuation
   text = re.sub("[^a-zA-Z ]", "", str(text))
-  
+
   # lowercase everything
   text = text.lower()
-  
+
   # tokenize the text
   text = nltk.word_tokenize(text)
   return text
-  
+
 # as seen in the first few runs of lda, these words contributed to the noise
 # when it came to topic modeling. To remove the noise, we'll remove these words
 # and get the relevant topics
@@ -94,6 +103,7 @@ print(corpus[:1])
 # output shows the Topic-Words matrix for 5 of the topic that were created and 5 words within
 # each topic that describes them
 ldamodel = gensim.models.ldamodel.LdaModel(corpus, num_topics = 5, id2word = dictionary, passes = 10)
+# ldamodel = gensim.models.ldamulticore.LdaModel(corpus, num_topics=5, id2word=dictionary, passes=10)
 ldamodel.save('model.gensim')
 topics = ldamodel.print_topics(num_words = 5)
 for topic in topics: 
@@ -107,5 +117,24 @@ doc_topic = ldamodel.get_document_topics(corpus[1])
 # (3, 0.744) implies that topic 3 showed up in 74.4% of the abstracts
 print(doc_topic)
 
+top_topics = ldamodel.top_topics(corpus)
+# average topic coherence is the sum of topic coherences of all topics, divided by the number of topics
+avg_topic_coherence = sum([t[1] for t in top_topics]) / len(topics)
+print('Average topic coherence: %.4f.' % avg_topic_coherence)
+
+from pprint import pprint
+pprint(top_topics)
+
 # (5) ANALYZE THE DATA
-# planning to use pyLDAvis to visualize the data; wip
+import pyLDAvis
+
+# output the visuals to lda-vis-data.html, an interactive html file
+lda_vis_data = pyLDAvis.gensim.prepare(ldamodel, corpus, dictionary)
+pyLDAvis.save_html(lda_vis_data, "lda-vis-data.html")
+
+# determin when the algorithm stopped
+end = time.time()
+print(f"Runtime: {end - start}")
+
+# show the results
+pyLDAvis.show(lda_vis_data)
