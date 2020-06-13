@@ -7,24 +7,22 @@ import nltk
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
-#Uncomment this on first run to make sure you have the 
+#Please uncomment this on first run to make sure you have the 
 #necessary files for nltk
 #nltk.download('punkt') 
 
-#Using the same method as Angie's LDA to filter and preprocess 
-#the csv into corpus.  Credit to Angie McGraw
+#Credit to Angie McGraw for her preprocessing steps
 
 ##########################################################################
 ###########NOTICE: UNCOMMENT THE SECTION BELOW ON FIRST RUN###############
 ##########################################################################
 """
-metadata = pd.read_csv('metadata.csv', low_memory= False)
+metadata = pd.read_csv('../data/metadata.csv', low_memory= False)
 keep_columns = ['abstract', 'publish_time']
 
 data  = metadata[keep_columns]
 
-data.to_csv("newmeta.csv", index = False)
-
+data.to_csv("../data/newmeta.csv", index = False)
 """
 
 data = pd.read_csv('newmeta.csv', low_memory= False)
@@ -37,15 +35,13 @@ def clean(txt):
     txt = nltk.word_tokenize(txt)
     return txt
 
-#Apply minor cleaing to the data
+#Apply minor cleaning to the data
 token_data = data['abstract'].apply(clean)
 
 #Using gensim to generate model below
 model = gensim.models.Word2Vec(token_data, size = 100, window= 20, min_count= 15000, workers= 4)
 
-#print(np.array(model.wv.most_similar('patient')))
-
-#Trying to get the word label
+#Getting the word label from the vocab built by our model
 vocab = list(model.wv.vocab)
 X = model.wv.__getitem__(vocab)
 tsne = TSNE(perplexity= 40, n_components= 2, init= 'pca', n_iter= 2500, random_state= 23)
