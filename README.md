@@ -12,3 +12,12 @@ This repository is structured to separate our **research, code, and dataset**. T
 <br /><br />
 
 The data for this project can be downloaded from [here](https://www.kaggle.com/allen-institute-for-ai/CORD-19-research-challenge?select=metadata.csv). The file of interest is `metadata.csv` which should be placed into the `data` folder of this project. 
+
+### To run the code
+In the `src/` directory, there are two [Jupyter Notebooks](https://jupyter.org/), `TopicModel.ipynb` and `w2v_tsne.ipynb`. For ease, we recommend running the programs from the notebooks. You can download or clone this repository to your local machine. If you downloaded the repository, please move into the `src` directory and type 
+
+```sh
+jupyter notebook
+```
+
+from a terminal. This should open Jupyter and allow you to open either notebook. Once you have opened a notebook, navigate to `cell` and then `Run All` . 
